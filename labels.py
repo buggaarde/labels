@@ -9,7 +9,11 @@ import json
 
 @click.command()
 @click.option(
-    "--token", "-t", default="MY_GITHUB_TOKEN", show_default="MY_GITHUB_TOKEN"
+    "--token",
+    "-t",
+    help="name of environment variable containing GitHub autorization token",
+    default="MY_GITHUB_TOKEN",
+    show_default="MY_GITHUB_TOKEN",
 )
 @click.option(
     "--suffix", "-s", default="", help="suffix the specified labels with this option"
@@ -21,7 +25,7 @@ import json
     "--description",
     "-d",
     default="",
-    help='special forms are: {}, {p}, {s}, {ps}, which resolve to the label value, and either prefixed, suffixed or both, respectively.\nE.g. "{} {p} {s} {ps}"\n-> "LABEL prefixLABEL LABELsuffix prefixLABELsuffix"',
+    help='special forms are: {}, {p}, {s}, {ps}, which resolve to the label value, and either prefixed, suffixed or both, respectively.\nE.g. "{} {p} {s} {ps}"\n->\n"LABEL prefixLABEL LABELsuffix prefixLABELsuffix"',
 )
 @click.option(
     "--color",
@@ -31,7 +35,10 @@ import json
     show_default="#FFFAFA",
 )
 @click.option(
-    "--update", "-u", is_flag=True, help="flag if existing labels should be updated"
+    "--update",
+    "-u",
+    is_flag=True,
+    help="flag if existing labels should be updated. If not flagged, existing labels will be skipped",
 )
 @click.option("--is_json", "-j", is_flag=True, help="flag if input is a json-file")
 @click.option(
@@ -44,7 +51,7 @@ def main(
     """Automate label creation on your GitHub projects
 
     Either specify the labels you want created directly, or read from json-file. 
-    Reading from json will ignore all other options and only use what is read from file
+    Reading from json will ignore all other options and only use what is read from file.
     """
 
     if "/" not in repo:
