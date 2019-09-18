@@ -33,11 +33,14 @@ import json
 @click.option(
     "--update", "-u", is_flag=True, help="flag if existing labels should be updated"
 )
+@click.option("--is_json", "-j", is_flag=True, help="flag if input is a json-file")
 @click.option(
     "--repo", "-r", required=True, help='a repo is of the form "owner/repository"'
 )
 @click.argument("labels_or_json", nargs=-1)
-def main(labels_or_json, repo, color, update, description, prefix, suffix, token):
+def main(
+    labels_or_json, repo, is_json, color, update, description, prefix, suffix, token
+):
     """Automate label creation on your GitHub projects
 
     Either specify the labels you want created directly, or read from json-file. 
@@ -55,16 +58,8 @@ def main(labels_or_json, repo, color, update, description, prefix, suffix, token
         )
         return
 
-    # check whether argument is labels or json
-    is_json = False
-    if len(labels_or_json) == 1:
-        try:
-            j = open(labels_or_json[0])
-            is_json = True
-        except:
-            pass
-
     if is_json:
+        j = open(labels_or_json[0])
         labels = json.load(j)["labels"]
         j.close()
     else:
@@ -91,27 +86,39 @@ def main(labels_or_json, repo, color, update, description, prefix, suffix, token
         "Accept": "application/vnd.github.symmetra-preview.json",
     }
 
-    for l in labels:
-        response = r.post(
-            f"https://api.github.com/repos/{repo}/labels", json=l, headers=headers
-        )
+    request = r.post
+    request_string = f"https://api.github.com/repos/{repo}/labels"
 
-        if response.status_code == 201:
-            if not is_json:
-                print(f"Created label {prefix}{l}{suffix} successfully")
-            else:
-                print(f'Created label {l["name"]} successfully')
+    curr_resp = json.loads(r.get(request_string, headers=headers).content)
+    current_labels = [c["name"] for c in curr_resp]
+
+    for l in labels:
+        req_string = request_string
+        req = request
+        if update and l["name"] in current_labels:
+            print(f'Label {l["name"]} already exists. Updating instead')
+            req = r.patch
+            req_string = request_string + f'/{l["name"]}'
+        if not update and l["name"] in current_labels:
+            print(f'Label {l["name"]} already exists. To update use flag "--update"')
+            print("Skipping...")
             continue
 
-        if not is_json:
-            print(
-                f"Error creating label {prefix}{l}{suffix} with status code {response.status_code}:"
-            )
-        else:
-            print(
-                f'Error creating label {l["name"]} with status code {response.status_code}:'
-            )
-        print(response.content)
+        response = req(req_string, json=l, headers=headers)
+
+        if response.status_code == 201:
+            print(f'Created label {l["name"]} successfully')
+            continue
+        if response.status_code == 200:
+            print(f'Updated label {l["name"]} successfully')
+            continue
+
+        print(
+            f'Error creating label {l["name"]} with status code {response.status_code}:'
+        )
+        msg = json.loads(response.content)["message"]
+        url = json.loads(response.content)["documentation_url"]
+        print(f"{msg}: See {url}")
 
 
 if __name__ == "__main__":
