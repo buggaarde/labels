@@ -26,7 +26,7 @@ sudo cp ./labels.py /usr/local/bin/labels
 
 ### Flags
 
-`--is_json`/`-j` flags whether or not the `labels_or_json` is a list of labels or a file specifying the labels. See [the GitHub API](https://developer.github.com/v3/issues/labels/#create-a-label) for the expected json-data.
+`--is_json`/`-j` flags whether or not the `labels_or_json` is a list of labels or a file specifying the labels. See [the example](#creating-labels-from-json) or [the GitHub API](https://developer.github.com/v3/issues/labels/#create-a-label) for the expected json-data.
 
 `--update`/`-u` flags whether existing labels should be skipped or updated with new information.
 
